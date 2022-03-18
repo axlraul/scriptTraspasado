@@ -1,0 +1,23 @@
+---
+# meta file for deployer role
+galaxy_info:
+  author: Raul Perez
+  description: A role to create menuoper to allow oper to execute scripts
+  company: 
+  license: GPLv3
+  min_ansible_version: 2.8
+  platforms:
+    - name: CentOS
+      versions:
+        - 6
+        - 7
+        - 8
+    - name: Red Hat Enterprise Linux
+      versions:
+        - 6
+        - 7
+        - 8
+
+dependencies: []
+...
+

@@ -1,0 +1,75 @@
+---
+- name: Crear directorio necesarios
+  file:
+    path: '{{ item.path_directory }}'
+    state: directory
+    owner: '{{ item.owner_directory }}'
+    group: '{{ item.group_directory }}'
+    mode: '0755'
+  with_items:
+    - {path_directory: '/tools/scripts/traspaso_oper', owner_directory: 'root', group_directory: 'root'}
+    - {path_directory: '/tools/scripts/traspaso_oper/log', owner_directory: 'oper', group_directory: 'oper'}
+    - {path_directory: '/tools/scripts/traspaso_oper/modulos', owner_directory: 'root', group_directory: 'root'}
+    - {path_directory: '/tools/scripts/traspaso_oper/custom', owner_directory: 'root', group_directory: 'root'}
+    - {path_directory: '/tools/scripts/traspaso_oper/custom/CHEJEMPLO', owner_directory: 'root', group_directory: 'root'}
+    - {path_directory: '/tools/scripts/traspaso_oper/scripts', owner_directory: 'root', group_directory: 'root'}
+    - {path_directory: '/tools/scripts/traspaso_oper/modulos/cpvalidar', owner_directory: 'root', group_directory: 'root'}
+    - {path_directory: '/home/oper/.menu/spe', owner_directory: 'oper', group_directory: 'oper'}
+- name: Copiar scripts necesarios
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - {src: '../repositorio/traspaso_oper/scripts/script_IOP_oper.sh', dest: '/tools/scripts/traspaso_oper/scripts/script_IOP_oper.sh', owner: 'root', group: 'root', mode: '0755'}
+- name: Creando script de ejemplo CHEJEMPLO ejecutable por script_IOP_oper.sh
+  copy:
+    dest: "/tools/scripts/traspaso_oper/custom/CHEJEMPLO/CHEJEMPLO.sh"
+    owner: root
+    group: root
+    content: |
+      echo "Ejecucion script CHEJEMPLO.sh"
+- name: Creando modulo cpvalidar ejecutable por script_IOP_oper.sh
+  copy:
+    dest: "/tools/scripts/traspaso_oper/modulos/cpvalidar/cpvalidar.sh"
+    owner: root
+    group: root
+    content: |
+      #!/bin/bash
+
+      /bin/cp -paR "$1" "$2"
+      echo $1 $2
+      #diff "$2" "$3"
+- name: Creando documento ejecutor de cambios
+  copy:
+    dest: "/tools/scripts/traspaso_oper/cambios.txt"
+    owner: root
+    group: root
+    content: |
+      #FORMATO: CHXXXXXX MODULO ARG1 ARG2 ARGn
+      
+      EJECUTADO CH1234	cpvalidar /tmp/ola /tmp/adios
+      EJECUTADO CH1234	cpvalidar /tmp/adios /tmp/adiosito
+      CHFAKE cpvalidar /aaa /bbb
+      CHEJEMPLO custom #el numero de argumentos es custom
+- name: Copiar opciones OPMENU
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: "{{ item.mode }}"
+  with_items:
+    - {src: '../repositorio/opmenu/main-90-traspaso_oper.mnu', dest: '/home/oper/.menu/spe/main-90-traspaso_oper.mnu', owner: 'oper', group: 'oper', mode: '0644'}
+    - {src: '../repositorio/opmenu/main.mnu.90-traspaso_oper', dest: '/home/oper/.menu/spe/main.mnu.90-traspaso_oper', owner: 'oper', group: 'oper', mode: '0644'}
+    - {src: '../repositorio/opmenu/main.mnu', dest: '/home/oper/.menu/spe/main.mnu', owner: 'oper', group: 'oper', mode: '0644'}
+    - {src: '../repositorio/opmenu/main.mnu.99-q', dest: '/home/oper/.menu/spe/main.mnu.99-q', owner: 'oper', group: 'oper', mode: '0644'}
+- name: Añadir sudoers necesarios para ejecucion script_IOP_oper.sh
+  blockinfile:
+    dest: "/etc/sudoers.d/99-custom"
+    content: |
+      Cmnd_Alias TRASPASO = /bin/bash /tools/scripts/traspaso_oper/oper/scripts/script_IOP_oper.sh
+      OPERADOR ALL=(root) NOPASSWD: TRASPASO
+...      
